@@ -5,6 +5,7 @@
 # ======================================================================
 
 # Ron Fernández
+# 2025-07-10 - update filter per day added
 # 2025-06-09
 
 # NOTA 1: este código analiza archivos en FLAC que se convierten a WAV durante el procesamiento
