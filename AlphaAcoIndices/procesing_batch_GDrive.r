@@ -64,7 +64,8 @@ folder_results <- readline(prompt = "Ingresa el ID de la carpeta de resultados e
 # 3 FOLDERS Y TEMPORALES ----
 #creamos una lista con los archivos
 files <- drive_ls(as_id(folder_id))
-nrow(files) #verificar cuantos archivos hay
+files_orig <- nrow(files) #verificar cuantos archivos hay
+files_orig
 
 
 # Crear carpeta temporal local
@@ -217,7 +218,7 @@ temp_table <- data.frame(
   total_time <- as.numeric(end_time - start_time, units = "secs")
   cat("\n--- Resumen de Tiempos ---\n")
   cat(paste0("Tiempo total del proceso: ", round(total_time, 2), " segundos.\n"))
-  cat("Procesados:", nrow(temp_table), "/", length(files), "archivos\n")
+  cat("Procesados:", nrow(temp_table), "/", files_orig, "archivos originales\n")
   cat("Duración:", round(total_time, 2), "segundos\n")
   cat(" = ", round(total_time/60, 2), "minutos =", round(total_time/3600, 2), "horas\n")
 
