@@ -71,7 +71,17 @@ temp_dir <- file.path(tempdir(), "gdrive_audio")
 dir.create(temp_dir, showWarnings = FALSE)
 
 # 4 FILTRADO DE ARCHIVOS A PROCESAR ----
-# En este caso filtramos archivos en horario entre 05:00 a 19:00
+# --- Ajuste: filtro por rango de fechas
+date_ini_str <- readline(prompt = "Fecha inicio (YYYYMMDD): ")
+date_fin_str <- readline(prompt = "Fecha fin    (YYYYMMDD): ")
+date_ini <- as.Date(date_ini_str, format = "%Y%m%d")
+date_fin <- as.Date(date_fin_str, format = "%Y%m%d")
+if (is.na(date_ini) || is.na(date_fin) || date_ini > date_fin) {
+  stop("Rango de fechas inválido. Asegúrate de usar YYYYMMDD y que inicio ≤ fin.")
+}
+
+
+# En este caso filtramos archivos en horario entre 04:00 a 19:00
 # y cada ciertos minutos específicos
 
 # Definimos el conjunto de minutos permitidos
@@ -81,16 +91,25 @@ valid_time <- c(0, 6, 12, 18, 24, 30, 36, 42, 48, 54)
 idx <- sapply(files$name, function(name) {
     # 1) Quitar la extensión (".flac", ".wav", etc.) → "20241216_142000"
     without_ext <- tools::file_path_sans_ext(name)
-    # 2) Separar por "_" y tomar la parte "HHMMSS"
-    parts   <- strsplit(without_ext, "_")[[1]]
+    
+    # extraer la fecha, hora y mins del nombre del archivo
+    parts <- strsplit(without_ext, "_")[[1]]
     if (length(parts) < 2) return(FALSE)
-    time   <- parts[length(parts)]  # ej. "142000"
-    # 3) Extraer hora (pos 1–2) y minuto (pos 3–4):
-    hour   <- as.numeric(substr(time, 1, 2))
+
+    # 2) filtro de fecha
+    date_str <- parts[1]  # "YYYYMMDD"
+    date_file <- as.Date(date_str, "%Y%m%d")
+    if (is.na(date_file) || date_file < date_ini || date_file > date_fin) {
+      return(FALSE)
+    }
+    # 3) filtro de hora y minutos
+    time <- parts[length(parts)]  # ej. "142000"
+    # Extraer hora (pos 1–2) y minuto (pos 3–4):
+    hour <- as.numeric(substr(time, 1, 2))
     mins <- as.numeric(substr(time, 3, 4))
-    # 4) Filtrar por rango de hora: de 5 a 19 (inclusive)
-    if (is.na(hour) || hour < 5 || hour > 19) return(FALSE)
-    # 5) Filtrar por minuto en el vector minutos_validos
+    # Filtrar por rango de hora: de 5 a 19 (inclusive)
+    if (is.na(hour) || hour < 4 || hour > 19) return(FALSE)
+    # Filtrar por minuto en el vector minutos_validos
     if (is.na(mins) || !(mins %in% valid_time)) return(FALSE)
     return(TRUE)
   })
@@ -105,9 +124,16 @@ files <- files_filtered
 # 5 CALCULAR INDICES ALPHA ----
 # 5.1 Crear el dataframe -----
 temp_table <- data.frame(
-  archivo = character(),
+  site = character(),
+  filename = character(),
   gdrive_id = character(),
   path_local = character(),
+  year = character(),
+  month = character(),
+  day = character(),
+  hour = character(),
+  minute = character(),
+  second = character(),
   NP = numeric(),
   ACI_1 = numeric(),
   BI = numeric(),
@@ -137,6 +163,14 @@ temp_table <- data.frame(
       # Leer audio
       wave <- readWave(file_temp_wav)
 
+      #extraer fecha y hora del nombre del archivo
+      year   <- as.integer(substr(date_str, 1, 4))  ## ← AJUSTE
+      month  <- as.integer(substr(date_str, 5, 6))  ## ← AJUSTE
+      day    <- as.integer(substr(date_str, 7, 8))  ## ← AJUSTE
+      hour   <- as.integer(substr(time, 1, 2)) ## ← AJUSTE
+      minute <- as.integer(substr(time, 3, 4)) ## ← AJUSTE
+      second <- as.integer(substr(time, 5, 6)) ## ← AJUSTE
+
       # Calcular índices
       NP <- nrow(fpeaks(meanspec(wave, plot = FALSE), amp = c(1 / 70, 1 / 70), plot = FALSE))
       ACI_1 <- acoustic_complexity(wave)$AciTotAll_left
@@ -145,9 +179,16 @@ temp_table <- data.frame(
 
       # Agregar resultados
       new_row <- data.frame(
-        archivo = file_info$name,
+        site = folder_site_name,
+        filename = file_info$name,
         gdrive_id = file_info$id,
         path_local = file_local,
+        year = year,
+        month = month,
+        day = day,
+        hour = hour,
+        minute = minute,
+        second = second,
         NP = NP,
         ACI_1 = ACI_1,
         BI = BI,
@@ -175,17 +216,14 @@ temp_table <- data.frame(
   total_time <- as.numeric(end_time - start_time, units = "secs")
   cat("\n--- Resumen de Tiempos ---\n")
   cat(paste0("Tiempo total del proceso: ", round(total_time, 2), " segundos.\n"))
-
+  cat("Procesados:", nrow(temp_table), "/", length(files), "archivos\n")
+  cat("Duración:", round(total_time, 2), "segundos\n")
+  cat(" = ", round(total_time/60, 2), "minutos =", round(total_time/3600, 2), "horas\n")
 
   # Limpiar carpeta temporal completa
   unlink(temp_dir, recursive = TRUE)
 
-  #
-  #añadir columna con nombre de sitio/folder
-  temp_table <- temp_table %>%
-    mutate(site = folder_site_name)
-
-
+  
   #renombrar la tabla de resultados
   x <- assign(paste0("TableAlphaIndices_", folder_site_name), temp_table)
 
