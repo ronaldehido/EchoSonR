@@ -1,0 +1,2 @@
+Este es un ejemplo para plotear scores de una tarea de inferencia hecha en BirdNET para visualizar y analizar. El ejemplo es comparando los scores para dos versiones reentrenadas de un mismo modelo personalizados V1 y V3 que tiene 20 clases.
+Se hacen plots para todas las clases y para una especie de interés. se muestra el histograma para toda la escala de scores obtenidas y otros filtrando el primer porcentil 20% de la distribución de scores.
