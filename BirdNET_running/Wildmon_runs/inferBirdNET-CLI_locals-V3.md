@@ -18,4 +18,5 @@ conda activate echosonr_env
 ## Ejecución BirdNET
 Este es un flujo en Python para ejecutar BirdNET-CLI de forma local usando modelos personalizados y versiones originales o modificadas del analyzador
 >### Running WildMon V3 in BirdNET-CLI locally
->se comparte un [cuaderno de jupyter](https://github.com/ronaldehido/EchoSonR/blob/main/BirdNET_running/Wildmon_runs/inferBirdNET-CLI_locals-V3.ipynb) que puede ejecutarse localemente (recomiendo usar Visual Studio Code)s
+>se comparte un [cuaderno de jupyter](https://github.com/ronaldehido/EchoSonR/blob/main/BirdNET_running/Wildmon_runs/inferBirdNET-CLI_locals-V3.ipynb) que puede ejecutarse localemente (recomiendo usar Visual Studio Code)
+>copia el archivo en el folder EchoSonR y ejecutalo
