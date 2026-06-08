@@ -1,0 +1,4 @@
+# Ignorar subcarpetas específicas dentro de "carpeta"
+BirdNET_running/Audios/ShorTest
+BirdNET_running/BNresults/
+BirdNET_running/Codes
